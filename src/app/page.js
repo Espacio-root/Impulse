@@ -11,7 +11,7 @@ export default function Login() {
   const handleLogin = async (e) => {
     e.preventDefault();
     if (!username.trim()) return;
-    
+
     setLoading(true);
     try {
       const res = await fetch('/api/login', {
@@ -19,7 +19,7 @@ export default function Login() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username })
       });
-      
+
       const data = await res.json();
       if (data.success) {
         localStorage.setItem('contest_username', data.userId);
@@ -35,22 +35,33 @@ export default function Login() {
   };
 
   return (
-    <div className="container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-      <div className="panel" style={{ width: '400px', textAlign: 'center' }}>
-        <h1 style={{ marginBottom: '1rem', color: 'var(--accent-color)' }}>Contest Simulator</h1>
-        <p style={{ marginBottom: '2rem', color: 'var(--text-secondary)' }}>Enter your handle to join the contest</p>
-        
+    <div className="login-page">
+      <div className="panel login-card">
+        <div className="login-logo">I</div>
+        <h1 className="login-title">Impulse</h1>
+        <p className="login-subtitle">Virtual Contest Simulator &mdash; powered by Persistent Segment Trees</p>
+
         <form onSubmit={handleLogin}>
-          <input 
-            type="text" 
-            placeholder="Codeforces Handle" 
+          <input
+            type="text"
+            placeholder="Enter your handle"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            style={{ width: '100%', marginBottom: '1rem' }}
+            style={{ marginBottom: '16px' }}
             disabled={loading}
+            autoFocus
           />
-          <button type="submit" className="primary" style={{ width: '100%' }} disabled={loading || !username.trim()}>
-            {loading ? 'Entering...' : 'Enter Contest'}
+          <button
+            type="submit"
+            className="primary"
+            style={{ width: '100%', padding: '12px' }}
+            disabled={loading || !username.trim()}
+          >
+            {loading ? (
+              <span style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                <span className="spinner" /> Joining...
+              </span>
+            ) : 'Enter Contest'}
           </button>
         </form>
       </div>

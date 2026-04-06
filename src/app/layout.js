@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Virtual Contest Simulator',
-  description: 'Codeforces styled competitive programming platform',
+  title: 'Impulse - Virtual Contest Simulator',
+  description: 'Competitive programming platform with time-travelling leaderboard powered by Persistent Segment Trees',
 };
 
 export default function RootLayout({ children }) {

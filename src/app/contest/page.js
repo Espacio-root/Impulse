@@ -7,9 +7,12 @@ import Link from 'next/link';
 export default function ContestDashboard() {
   const [data, setData] = useState(null);
   const [timeLeft, setTimeLeft] = useState('');
+  const [isOver, setIsOver] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
+    setMounted(true);
     const user = localStorage.getItem('contest_username');
     if (!user) {
       router.push('/');
@@ -27,53 +30,74 @@ export default function ContestDashboard() {
       const diff = data.times.end - Date.now();
       if (diff <= 0) {
         setTimeLeft('Contest Over');
+        setIsOver(true);
         clearInterval(interval);
       } else {
-        const hs = Math.floor(diff / 3600000);
-        const ms = Math.floor((diff % 3600000) / 60000);
-        const ss = Math.floor((diff % 60000) / 1000);
-        setTimeLeft(`${hs}h ${ms}m ${ss}s`);
+        const hs = String(Math.floor(diff / 3600000)).padStart(2, '0');
+        const ms = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+        const ss = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+        setTimeLeft(`${hs}:${ms}:${ss}`);
       }
     }, 1000);
     return () => clearInterval(interval);
   }, [data]);
 
-  if (!data) return <div className="container">Loading...</div>;
+  if (!mounted || !data) return <div className="container loading-container">Loading...</div>;
+
+  const solvedCount = data.problems.filter(p => p.isSolved).length;
 
   return (
     <div className="container">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <h2>Dashboard</h2>
-        <div className="panel" style={{ marginBottom: 0, padding: '12px 24px', color: timeLeft === 'Contest Over' ? 'var(--error-color)' : 'inherit' }}>
-          <strong>Time Left: </strong>
-          <span style={{ fontFamily: 'var(--font-mono)' }}>{timeLeft}</span>
+      <div className="dashboard-header">
+        <div>
+          <h2>Contest Problems</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '4px' }}>
+            {solvedCount}/{data.problems.length} solved
+          </p>
+        </div>
+        <div className={`timer-badge ${isOver ? 'over' : ''}`}>
+          <span className={`timer-dot ${isOver ? 'over' : ''}`} />
+          <span>{timeLeft || '--:--:--'}</span>
         </div>
       </div>
-      
-      <div className="panel">
-        <h3>Problems</h3>
-        <table style={{ marginTop: '16px' }}>
+
+      <div className="panel" style={{ padding: 0, overflow: 'hidden' }}>
+        <table>
           <thead>
             <tr>
-              <th>Status</th>
-              <th>#</th>
-              <th>Name</th>
-              <th>Points</th>
-              <th>Action</th>
+              <th style={{ width: '70px' }}>Status</th>
+              <th style={{ width: '50px' }}>#</th>
+              <th>Title</th>
+              <th style={{ width: '100px' }}>Difficulty</th>
+              <th style={{ width: '90px', textAlign: 'right' }}>Points</th>
+              <th style={{ width: '100px', textAlign: 'center' }}>Action</th>
             </tr>
           </thead>
           <tbody>
             {data.problems.map(p => (
               <tr key={p.id}>
                 <td>
-                  {p.isSolved ? <span style={{ color: 'var(--success-color)', fontWeight: 'bold' }}>✓ AC</span> : '-'}
+                  {p.isSolved ? (
+                    <span className="status-badge solved">{'\u2713'}</span>
+                  ) : (
+                    <span style={{ color: 'var(--text-muted)' }}>–</span>
+                  )}
                 </td>
-                <td>{p.id}</td>
-                <td>{p.title}</td>
-                <td>{p.points}</td>
+                <td style={{ fontWeight: 600, color: 'var(--text-muted)' }}>{p.id}</td>
                 <td>
+                  <Link href={`/contest/problem/${p.id}`} style={{ color: 'var(--text-primary)', fontWeight: 500 }}>
+                    {p.title}
+                  </Link>
+                </td>
+                <td>
+                  <span className={`difficulty-tag ${p.difficulty || 'Easy'}`}>
+                    {p.difficulty || 'Easy'}
+                  </span>
+                </td>
+                <td style={{ textAlign: 'right', fontFamily: 'var(--font-mono)', fontSize: '0.875rem' }}>{p.points}</td>
+                <td style={{ textAlign: 'center' }}>
                   <Link href={`/contest/problem/${p.id}`}>
-                    <button className="primary">Solve</button>
+                    <button className="solve-btn">Solve</button>
                   </Link>
                 </td>
               </tr>
